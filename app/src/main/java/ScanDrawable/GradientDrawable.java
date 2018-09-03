@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.RadialGradient;
@@ -26,8 +27,11 @@ public class GradientDrawable extends Drawable implements Animatable {
     private ValueAnimator mAnimator;
     private ValueAnimator.AnimatorUpdateListener mAnimatorUpdateListener;
     private int mStartAngle = 0;
-    private final  int defaultmStartangle = 270;
+    private final int defaultmStartangle = 270;
+    private final int sweep = 90;
     private int[] colors;
+    private Matrix matrix;
+
 
     public GradientDrawable(Context context, float radius, float strokeWidth) {
         this.mContext = context;
@@ -40,15 +44,17 @@ public class GradientDrawable extends Drawable implements Animatable {
     private void initPaint() {
         mPaint = new Paint();
         mPaint.setStrokeWidth(mStrokeWidth); // 设置圆环的宽度
-        colors= new int[]{Color.parseColor("#00000000"), Color.parseColor("#1a000000")};
-        float startPosition=defaultmStartangle/360.0f;
-        float positions[]={startPosition,1.0f};
-        SweepGradient lg = new SweepGradient(mRadius, mRadius,colors, positions);
+        colors = new int[]{Color.parseColor("#00000000"), Color.parseColor("#1a000000")};
+        float startPosition = defaultmStartangle / 360.0f;
+        float positions[] = {startPosition, 1.0f};
+        SweepGradient lg = new SweepGradient(mRadius, mRadius, colors, positions);
         mPaint.setShader(lg);
         mPaint.setAntiAlias(true); // 消除锯齿
         mPaint.setStyle(Paint.Style.STROKE); // 设置空心
         // 用于定义的圆弧的形状和大小的界限
         mRectF = new RectF(mStrokeWidth / 2, mStrokeWidth / 2, mRadius * 2 - mStrokeWidth / 2, mRadius * 2 - mStrokeWidth / 2);
+        //初始化矩阵
+        matrix = new Matrix();
     }
 
     private void initAnimator() {
@@ -63,6 +69,10 @@ public class GradientDrawable extends Drawable implements Animatable {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 mStartAngle = (int) animation.getAnimatedValue();
+                //重置矩阵
+                matrix.reset();
+                //设置旋转角度
+                matrix.setRotate(mStartAngle, mRadius, mRadius);
                 invalidateSelf();
             }
         };
@@ -70,27 +80,8 @@ public class GradientDrawable extends Drawable implements Animatable {
 
     @Override
     public void draw(@NonNull Canvas canvas) {
-
-        float startPosition=(defaultmStartangle+mStartAngle)/360.0f;
-        if (startPosition>1){
-            startPosition-=1;
-        }
-        float endPosition=startPosition+0.25f;
-        if (endPosition > 1) {
-            startPosition = startPosition-1;
-            endPosition -= 1;
-        }
-
-        float positions[]={startPosition,endPosition};
-        SweepGradient lg = new SweepGradient(mRadius, mRadius,colors, positions);
-        mPaint.setShader(lg);
-        int sweep=90;
-        int degree=defaultmStartangle+mStartAngle;
-        if (mStartAngle >= 0 && mStartAngle <= 90) {
-            degree=1;
-            sweep=mStartAngle;
-        }
-        canvas.drawArc(mRectF, degree, sweep, false, mPaint); //画圆弧
+        canvas.concat(matrix);
+        canvas.drawArc(mRectF, defaultmStartangle, sweep, false, mPaint); //画圆弧
     }
 
     @Override

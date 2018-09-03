@@ -18,49 +18,50 @@ public class ScanDrawableBuider {
         return instance;
     }
 
-    public void starAnimation(){
-        if (mGradientDrawable==null){
+    public void starAnimation() {
+        if (mGradientDrawable == null) {
             return;
         }
         mGradientDrawable.start();
     }
 
-    public void stopAnimation(){
-        if (mGradientDrawable==null){
+    public void stopAnimation() {
+        if (mGradientDrawable == null) {
             return;
         }
         mGradientDrawable.stop();
     }
 
-    public boolean isRunning(){
-        if (mGradientDrawable==null){
+    public boolean isRunning() {
+        if (mGradientDrawable == null) {
             return false;
         }
-       return mGradientDrawable.isRunning();
+        return mGradientDrawable.isRunning();
     }
 
-    public LayerDrawable getScanDrawable(Context context,int centerResId, int color, float radius) {
+    public LayerDrawable getScanDrawable(Context context, int centerResId, int color, float radius) {
         int defaultAlpha = 225;
         int totalCircle = 4;
-        Drawable[] layers = new Drawable[totalCircle+2];
+        Drawable[] layers = new Drawable[totalCircle + 2];
         //4个圆环
         float[] strokwidths = {0.208f * radius, 0.192f * radius, 0.169f * radius, 0.142f * radius};
-        float[] radiuses = {radius, radius-strokwidths[0], radius-strokwidths[0]-strokwidths[1], radius-strokwidths[0]-strokwidths[1]-strokwidths[2]};
+        float[] radiuses = {radius, radius - strokwidths[0], radius - strokwidths[0] - strokwidths[1], radius - strokwidths[0] - strokwidths[1] - strokwidths[2]};
         int[] alpha = {(int) (defaultAlpha * 0.15), (int) (defaultAlpha * 0.35), (int) (defaultAlpha * 0.45), (int) (defaultAlpha * 0.65)};
 
         for (int i = 0; i < totalCircle; i++) {
-            ScanLevelDrawable drawable = new ScanLevelDrawable(context, color,radius*2, strokwidths[i], radiuses[i], alpha[i]);
+            ScanLevelDrawable drawable = new ScanLevelDrawable(context, color, radius * 2, strokwidths[i], radiuses[i], alpha[i]);
             layers[i] = drawable;
         }
-        //扇形渐变遮罩
-        layers[totalCircle]=mGradientDrawable=new GradientDrawable(context,radius,radius-(radiuses[totalCircle-1]-strokwidths[totalCircle-1]));
         //中心的图片
         //最中心圆的图片
-        float lastRadius=radiuses[totalCircle-1]-strokwidths[totalCircle-1];
+        float lastRadius = radiuses[totalCircle - 1] - strokwidths[totalCircle - 1];
         //width是最中心圆的圆内正方形的边长*2/3
-        float centerWidth= (float) (lastRadius*Math.sqrt(2)/2);
-        CenterDrawable drawableCenter = new CenterDrawable(context,centerResId,radius,centerWidth,centerWidth);
-        layers[totalCircle + 1] = drawableCenter;
+        float centerWidth = (float) (lastRadius * Math.sqrt(2) / 2);
+        CenterDrawable drawableCenter = new CenterDrawable(context, centerResId, radius, centerWidth, centerWidth);
+        layers[totalCircle] = drawableCenter;
+
+        //扇形渐变遮罩
+        layers[totalCircle + 1] = mGradientDrawable = new GradientDrawable(context, radius, radius - (radiuses[totalCircle - 1] - strokwidths[totalCircle - 1]));
         return new LayerDrawable(layers);
     }
 
